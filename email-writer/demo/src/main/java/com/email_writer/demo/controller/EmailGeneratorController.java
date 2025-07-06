@@ -5,6 +5,7 @@ import com.email_writer.demo.service.EmailGeneratorService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/email")
@@ -19,4 +20,15 @@ public class EmailGeneratorController {
         String response = emailGeneratorService.generateEmailReply(emailRequest);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/generate-with-file")
+    public ResponseEntity<String> generateEmailWithFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("emailContent") String emailContent,
+            @RequestParam("tone") String tone) {
+
+        String reply = emailGeneratorService.generateReplyWithFile(emailContent, tone, file);
+        return ResponseEntity.ok(reply);
+    }
+
 }

@@ -1,4 +1,4 @@
-.ai_selector_button {
+/* .ai_selector_button {
   background-color: #1a73e8;
   color: white;
   font-weight: 500;
@@ -23,4 +23,32 @@
 .ai_selector_button:disabled {
   background-color: #a3c2f2;
   cursor: default;
+} */
+
+.ai_main_button {
+  background-color: #1a73e8;
+  color: white;
+  font-weight: 500;
+  font-size: 14px;
+  font-family: "Google Sans", Roboto, Arial, sans-serif;
+  border: none;
+  border-radius: 24px;
+  padding: 0 24px;
+  height: 36px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  transition: background-color 0.2s ease-in-out;
 }
+
+.ai_main_button:hover {
+  background-color: #1967d2;
+}
+
+.ai_main_button:disabled {
+  background-color: #a3c2f2;
+  cursor: default;
+}
+
