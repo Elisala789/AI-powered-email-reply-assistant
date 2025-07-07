@@ -33,23 +33,34 @@ function createAIButton() {
     dropdown.style.top = '100%';
     dropdown.style.left = '0';
     dropdown.style.zIndex = '9999';
-    dropdown.style.background = '#1a73e8';
-    dropdown.style.border = '1px solid #ccc';
-    dropdown.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+    dropdown.style.background = '#fff'; // changed from #1a73e8
+    dropdown.style.border = '1px solid rgba(0,0,0,0.1)';
+    dropdown.style.borderRadius = '4px';
+    dropdown.style.boxShadow = '0 4px 6px rgba(0,0,0,0.2)';
     dropdown.style.display = 'none';
-    dropdown.style.minWidth = '140px';
+    dropdown.style.minWidth = 'auto';
+    dropdown.style.width = 'fit-content';
+    dropdown.style.padding = '4px 0';
 
     const tones = ['professional', 'friendly', 'casual'];
 
     tones.forEach(tone => {
         const option = document.createElement('div');
         option.textContent = tone.charAt(0).toUpperCase() + tone.slice(1);
-        option.style.padding = '8px 12px';
+        option.style.padding = '10px 16px';
         option.style.cursor = 'pointer';
-        option.style.color = '#fff';
-        option.style.fontWeight = '500';
-       option.addEventListener('mouseover', () => option.style.background = '#1558b0'); // darker on hover
-option.addEventListener('mouseout', () => option.style.background = '#1a73e8'); // default Gmail blue
+        option.style.fontSize = '14px';
+        option.style.color = '#202124'; // Gmail's dark text
+        option.style.fontWeight = '400';
+
+        option.addEventListener('mouseover', () => {
+            option.style.background = '#f1f3f4'; // Gmail-like hover
+        });
+
+        option.addEventListener('mouseout', () => {
+            option.style.background = 'transparent'; // reset on mouse out
+        });
+
 
 
         option.addEventListener('click', () => {
@@ -75,44 +86,53 @@ option.addEventListener('mouseout', () => option.style.background = '#1a73e8'); 
 
     return container;
 }
-// async function generateReplyWithTone(tone) {
-//     const button = document.querySelector('.ai_selector_button > .T-I');
-//     try {
-//         button.textContent = 'Generating...';
-//         button.style.pointerEvents = 'none';
-//         const emailContent = getEmailContent();
-
-//         const response = await fetch('http://localhost:8080/api/email/generate', {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify({ emailContent, tone })
-//         });
-
-//         if (!response.ok) throw new Error('API Request Failed');
-
-//         const generatedReply = await response.text();
-//         const composeBox = document.querySelector('[role="textbox"][g_editable="true"]');
-
-//         if (composeBox) {
-//             composeBox.focus();
-//             document.execCommand('insertText', false, generatedReply);
-//         } else {
-//             console.error('Compose box was not found');
-//         }
-
-//     } catch (error) {
-//         console.error(error);
-//         alert('Failed to generate reply');
-//     } finally {
-//         button.textContent = 'AI Reply ▼';
-//         button.style.pointerEvents = 'auto';
-//     }
-// }
-
-
 /////
+function showSpamWarningBanner(message = "🚨 Spam alert! This message looks suspicious.") {
+    // Avoid duplicate warnings
+    const existing = document.querySelector('.ai_spam_banner');
+    if (existing) return;
+
+    const banner = document.createElement('div');
+    banner.classList.add('ai_spam_banner');
+    banner.textContent = message;
+
+    // Basic style
+    Object.assign(banner.style, {
+        position: 'absolute',
+        top: '10px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        backgroundColor: '#ff4d4f',
+        color: '#fff',
+        padding: '12px 20px',
+        fontSize: '14px',
+        borderRadius: '8px',
+        boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+        zIndex: 10000,
+        animation: 'fadeInOut 4s ease-in-out forwards'
+    });
+
+    document.body.appendChild(banner);
+
+    // Remove after animation
+    setTimeout(() => {
+        banner.remove();
+    }, 6000);
+}
+
+// Add animation style
+const style = document.createElement('style');
+style.innerHTML = `
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translate(-50%, -20px); }
+    10% { opacity: 1; transform: translate(-50%, 0); }
+    90% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -20px); }
+}
+`;
+document.head.appendChild(style);
+
+
 async function generateReplyWithTone(tone) {
     // const button = document.querySelector('.ai_selector_button > .T-I');
     const button = document.querySelector('.ai_selector_button > .ai_main_button');
@@ -126,46 +146,46 @@ async function generateReplyWithTone(tone) {
 
         let response;
 
-        if (file) {
-            // Case 1: File is attached — use FormData
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('emailContent', emailContent);
-            formData.append('tone', tone);
+       
+        const formData = new FormData();
+formData.append('emailContent', emailContent);
+formData.append('tone', tone);
+if (file) {
+  formData.append('file', file);
+}
 
-            response = await fetch('http://localhost:8080/api/email/generate-with-file', {
-                method: 'POST',
-                body: formData
-            });
-        } else {
-            // Case 2: No file — use JSON
-            response = await fetch('http://localhost:8080/api/email/generate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ emailContent, tone })
-            });
-        }
+response = await fetch('http://localhost:8080/api/email/generate-with-file', {
+  method: 'POST',
+  body: formData
+});
+
 
         if (!response.ok) throw new Error('API Request Failed');
 
         const generatedReply = await response.text();
         const composeBox = document.querySelector('[role="textbox"][g_editable="true"]');
 
-        if (composeBox) {
-            composeBox.focus();
-            document.execCommand('insertText', false, generatedReply);
-        } else {
+        // if (composeBox) {
+        //     composeBox.focus();
+        //     document.execCommand('insertText', false, generatedReply);
+        // }
+if (generatedReply.includes("We’ve stopped the reply to keep things safe and clean.")) {
+    showSpamWarningBanner(); // Custom UI alert
+} else if (composeBox) {
+    composeBox.focus();
+    document.execCommand('insertText', false, generatedReply);
+}
+
+         else {
             console.error('Compose box was not found');
         }
-
     } catch (error) {
         console.error(error);
         alert('Failed to generate reply');
     } finally {
         button.textContent = 'AI Reply ▼';
         button.style.pointerEvents = 'auto';
+        window.selectedAttachment = null;
     }
 }
 

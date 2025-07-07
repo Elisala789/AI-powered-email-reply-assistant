@@ -20,15 +20,15 @@ public class EmailGeneratorController {
         String response = emailGeneratorService.generateEmailReply(emailRequest);
         return ResponseEntity.ok(response);
     }
-
     @PostMapping("/generate-with-file")
     public ResponseEntity<String> generateEmailWithFile(
-            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "file", required = false) MultipartFile file,
             @RequestParam("emailContent") String emailContent,
             @RequestParam("tone") String tone) {
 
         String reply = emailGeneratorService.generateReplyWithFile(emailContent, tone, file);
         return ResponseEntity.ok(reply);
     }
+
 
 }
